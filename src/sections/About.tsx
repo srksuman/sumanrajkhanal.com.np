@@ -32,7 +32,7 @@ export default function About() {
                 decentralized platforms.
               </p>
               <p>
-                My journey began during my final year of BSc Computer Science at the
+                My journey began during my final year of BSc (Hons) Computer Science at the
                 University of Wolverhampton, where I graduated as the Batch Topper.
                 Since then, I've shipped 20+ real-world projects, founded 3 ventures,
                 and worked with international clients to deliver production-grade software.
