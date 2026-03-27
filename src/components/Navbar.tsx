@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { navLinks } from '../data/portfolio';
 
-// Import sound effects
 import clickOpenSound from '../assets/click-open.wav';
 import clickCloseSound from '../assets/click-close.wav';
 
@@ -16,7 +15,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const [activeSection, setActiveSection] = useState('');
   const isInitialMount = useRef(true);
 
-  // Audio elements
   const openAudioRef = useRef<HTMLAudioElement | null>(null);
   const closeAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -27,7 +25,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     closeAudioRef.current.volume = 0.5;
   }, []);
 
-  // Play sound when menu state changes
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -73,7 +70,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     };
   }, []);
 
-  // Close menu on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false);
@@ -82,7 +78,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Lock body scroll when menu open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -108,7 +103,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
           <span className="gold">S</span>RK
         </a>
 
-        {/* Mobile overlay */}
         {menuOpen && (
           <div
             className="nav-overlay"
@@ -118,7 +112,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
         )}
 
         <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
-          {/* Close button inside mobile menu */}
           <button
             className="nav-close"
             onClick={() => setMenuOpen(false)}
@@ -148,7 +141,6 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
           </button>
         </div>
 
-        {/* Theme toggle + Hamburger */}
         <div className="nav-actions">
           <button
             className="theme-toggle"

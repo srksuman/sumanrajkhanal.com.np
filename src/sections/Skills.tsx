@@ -1,9 +1,11 @@
 import SectionReveal from '../components/SectionReveal';
+import SkillsGlobe from '../components/SkillsGlobe';
 import { skills, skillIcons } from '../data/portfolio';
 
 export default function Skills() {
   return (
-    <section className="section" id="skills">
+    <section className="section skills-section" id="skills">
+      <SkillsGlobe />
       <div className="container">
         <SectionReveal>
           <div className="section-label">Expertise</div>

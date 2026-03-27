@@ -1,4 +1,5 @@
 import SectionReveal from '../components/SectionReveal';
+import ContactScene from '../components/ContactScene';
 import { personalInfo } from '../data/portfolio';
 
 export default function Contact() {
@@ -7,7 +8,8 @@ export default function Contact() {
   };
 
   return (
-    <section className="section" id="contact">
+    <section className="section contact-section" id="contact">
+      <ContactScene />
       <div className="container">
         <SectionReveal>
           <div className="contact-content">

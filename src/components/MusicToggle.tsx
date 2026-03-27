@@ -14,15 +14,12 @@ export default function MusicToggle() {
     audio.volume = 0.15;
     audioRef.current = audio;
 
-    // Attempt immediate autoplay on mount
     const attemptImmediatePlay = () => {
       if (!audioRef.current) return;
       audioRef.current.play().then(() => {
         setIsPlaying(true);
         hasInteracted.current = true;
-      }).catch(() => {
-        // Browser blocked immediate autoplay, wait for interaction
-      });
+      }).catch(() => {});
     };
 
     attemptImmediatePlay();
@@ -32,13 +29,10 @@ export default function MusicToggle() {
         audioRef.current.play().then(() => {
           setIsPlaying(true);
           hasInteracted.current = true;
-          // Clean up listeners once audio plays
           window.removeEventListener('click', startAudio);
           window.removeEventListener('scroll', startAudio);
           window.removeEventListener('keydown', startAudio);
-        }).catch(() => {
-          // Autoplay blocked
-        });
+        }).catch(() => {});
       }
     };
 
@@ -55,7 +49,6 @@ export default function MusicToggle() {
     };
   }, []);
 
-  // UI Audio elements
   const openAudioRef = useRef<HTMLAudioElement | null>(null);
   const closeAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -77,9 +70,7 @@ export default function MusicToggle() {
         closeAudioRef.current.play().catch(() => {});
       }
     } else {
-      audio.play().catch(() => {
-        // Browser may block autoplay
-      });
+      audio.play().catch(() => {});
       if (openAudioRef.current) {
         openAudioRef.current.currentTime = 0;
         openAudioRef.current.play().catch(() => {});

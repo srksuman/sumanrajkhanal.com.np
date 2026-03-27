@@ -4,6 +4,7 @@ import ScrollProgress from './components/ScrollProgress';
 import GrainOverlay from './components/GrainOverlay';
 import Navbar from './components/Navbar';
 import MusicToggle from './components/MusicToggle';
+import FloatingGeometry from './components/FloatingGeometry';
 import Hero from './sections/Hero';
 import About from './sections/About';
 import Skills from './sections/Skills';
@@ -28,13 +29,12 @@ export default function App() {
 
   useEffect(() => {
     globalClickAudio.current = new Audio(clickOpenSound);
-    globalClickAudio.current.volume = 0.3; // slightly softer for general UI clicks
+    globalClickAudio.current.volume = 0.3;
 
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const isClickable = target.closest('a, button, [role="button"]');
       
-      // Prevent double audio on elements that have their own bespoke open/close sounds
       const isExcluded = target.closest('.nav-toggle, .music-toggle, .nav-close');
 
       if (isClickable && !isExcluded && globalClickAudio.current) {
@@ -73,10 +73,13 @@ export default function App() {
             <Hero />
             <About />
             <Skills />
+            <FloatingGeometry type="octahedron" className="divider-1" />
             <Experience />
             <Projects />
+            <FloatingGeometry type="tetrahedron" color={0x7b68ee} className="divider-2" />
             <Ventures />
             <Services />
+            <FloatingGeometry type="dodecahedron" className="divider-3" />
             <Achievements />
             <Contact />
           </main>

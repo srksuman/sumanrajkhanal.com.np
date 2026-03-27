@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 
-/* ─── helpers ─── */
 const CODE_LINES = [
   'const dev = new SoftwareEngineer();',
   'await dev.initialize({ passion: true });',
@@ -13,17 +12,28 @@ const CODE_LINES = [
   'const skills = [...fullStack, ...devOps];',
   'return <Experience excellence={true} />;',
   'npm run deploy --production',
-  '// TODO: change the world ✨',
+  'console.log("changing the world ✨");',
 ];
 
 const BOOT_PHASES = [
-  { label: 'Compiling modules', icon: '⚙' },
-  { label: 'Linking dependencies', icon: '🔗' },
-  { label: 'Building assets', icon: '📦' },
-  { label: 'Initializing runtime', icon: '⚡' },
-  { label: 'Loading portfolio', icon: '🚀' },
+  { label: 'Compiling modules', icon: '>' },
+  { label: 'Linking dependencies', icon: '$' },
+  { label: 'Building assets', icon: '#' },
+  { label: 'Initializing runtime', icon: '~' },
+  { label: 'Loading portfolio', icon: '::' },
   { label: 'Ready', icon: '✓' },
 ];
+
+function getLoadingColors() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return {
+    primary: isLight ? 0x8a6d1b : 0xc9a84c,
+    wireOpacity: isLight ? 0.35 : 0.25,
+    glowOpacity: isLight ? 0.12 : 0.08,
+    particleOpacity: isLight ? 0.7 : 0.5,
+    ringBase: isLight ? 0.18 : 0.12,
+  };
+}
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,7 +44,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
 
   const stableOnComplete = useCallback(onComplete, [onComplete]);
 
-  /* ─── rotating code lines ─── */
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentLine((prev) => (prev + 1) % CODE_LINES.length);
@@ -42,9 +51,8 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     return () => clearInterval(interval);
   }, []);
 
-  /* ─── boot sequence phases ─── */
   useEffect(() => {
-    const totalDuration = 5000; // 5 seconds total
+    const totalDuration = 5000;
     const phaseCount = BOOT_PHASES.length;
     const phaseInterval = totalDuration / phaseCount;
 
@@ -61,7 +69,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       );
     }
 
-    // mark last phase as done & exit
     timers.push(
       setTimeout(() => {
         setCompletedPhases((prev) => [...prev, phaseCount - 1]);
@@ -78,10 +85,11 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     return () => timers.forEach(clearTimeout);
   }, [stableOnComplete]);
 
-  /* ─── THREE.JS scene ─── */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    const colors = getLoadingColors();
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -91,28 +99,25 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 5);
 
-    /* ── icosahedron wireframe ── */
     const icoGeo = new THREE.IcosahedronGeometry(1.6, 1);
     const icoMat = new THREE.MeshBasicMaterial({
-      color: 0xc9a84c,
+      color: colors.primary,
       wireframe: true,
       transparent: true,
-      opacity: 0.25,
+      opacity: colors.wireOpacity,
     });
     const ico = new THREE.Mesh(icoGeo, icoMat);
     scene.add(ico);
 
-    /* ── inner glow sphere ── */
     const glowGeo = new THREE.SphereGeometry(0.6, 32, 32);
     const glowMat = new THREE.MeshBasicMaterial({
-      color: 0xc9a84c,
+      color: colors.primary,
       transparent: true,
-      opacity: 0.08,
+      opacity: colors.glowOpacity,
     });
     const glow = new THREE.Mesh(glowGeo, glowMat);
     scene.add(glow);
 
-    /* ── particle field ── */
     const particleCount = 600;
     const positions = new Float32Array(particleCount * 3);
     const velocities: number[] = [];
@@ -129,24 +134,23 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     const particleGeo = new THREE.BufferGeometry();
     particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const particleMat = new THREE.PointsMaterial({
-      color: 0xc9a84c,
+      color: colors.primary,
       size: 0.02,
       transparent: true,
-      opacity: 0.5,
+      opacity: colors.particleOpacity,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
 
-    /* ── orbiting rings ── */
     const rings: THREE.Mesh[] = [];
     for (let i = 0; i < 3; i++) {
       const ringGeo = new THREE.TorusGeometry(2.2 + i * 0.4, 0.008, 8, 80);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: 0xc9a84c,
+        color: colors.primary,
         transparent: true,
-        opacity: 0.12 - i * 0.03,
+        opacity: colors.ringBase - i * 0.03,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI * 0.3 * i;
@@ -155,7 +159,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       scene.add(ring);
     }
 
-    /* ── animate ── */
     const clock = new THREE.Clock();
     let animId = 0;
 
@@ -166,11 +169,11 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       ico.rotation.x = t * 0.15;
       ico.rotation.y = t * 0.2;
       ico.rotation.z = t * 0.1;
-      icoMat.opacity = 0.18 + Math.sin(t * 2) * 0.08;
+      icoMat.opacity = colors.wireOpacity * 0.7 + Math.sin(t * 2) * colors.wireOpacity * 0.3;
 
       const scale = 0.6 + Math.sin(t * 1.5) * 0.15;
       glow.scale.set(scale, scale, scale);
-      glowMat.opacity = 0.06 + Math.sin(t * 2) * 0.04;
+      glowMat.opacity = colors.glowOpacity * 0.75 + Math.sin(t * 2) * colors.glowOpacity * 0.5;
 
       rings.forEach((ring, i) => {
         ring.rotation.x += 0.002 * (i + 1);
@@ -228,7 +231,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           <canvas ref={canvasRef} className="loading-canvas" />
 
           <div className="loading-content">
-            {/* terminal code line */}
             <motion.div
               className="loading-terminal"
               initial={{ opacity: 0, y: -10 }}
@@ -251,7 +253,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               <span className="loading-terminal-cursor">▊</span>
             </motion.div>
 
-            {/* name */}
             <motion.div
               className="loading-name"
               initial={{ opacity: 0, letterSpacing: '20px' }}
@@ -261,7 +262,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               Suman Raj Khanal
             </motion.div>
 
-            {/* subtitle */}
             <motion.div
               className="loading-subtitle"
               initial={{ opacity: 0 }}
@@ -271,7 +271,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               Software Engineer · Full-Stack Developer
             </motion.div>
 
-            {/* boot sequence checklist */}
             <motion.div
               className="boot-sequence"
               initial={{ opacity: 0 }}
@@ -281,11 +280,11 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               {BOOT_PHASES.map((phase, i) => {
                 const isActive = i === bootPhase;
                 const isDone = completedPhases.includes(i);
-                const isVisible = i <= bootPhase;
+                const isPhaseVisible = i <= bootPhase;
 
                 return (
                   <AnimatePresence key={i}>
-                    {isVisible && (
+                    {isPhaseVisible && (
                       <motion.div
                         className={`boot-phase ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
                         initial={{ opacity: 0, x: -12 }}

@@ -50,7 +50,6 @@ export default function CustomCursor() {
     };
   }, [cursorX, cursorY, dotScale, ringScale]);
 
-  // Don't render on touch devices
   if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
     return null;
   }
