@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { navLinks } from '../data/portfolio';
+
+// Import sound effects
+import clickOpenSound from '../assets/click-open.wav';
+import clickCloseSound from '../assets/click-close.wav';
 
 interface NavbarProps {
   theme: 'dark' | 'light';
@@ -10,6 +14,38 @@ export default function Navbar({ theme, onToggleTheme }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const isInitialMount = useRef(true);
+
+  // Audio elements
+  const openAudioRef = useRef<HTMLAudioElement | null>(null);
+  const closeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    openAudioRef.current = new Audio(clickOpenSound);
+    closeAudioRef.current = new Audio(clickCloseSound);
+    openAudioRef.current.volume = 0.5;
+    closeAudioRef.current.volume = 0.5;
+  }, []);
+
+  // Play sound when menu state changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (menuOpen) {
+      if (openAudioRef.current) {
+        openAudioRef.current.currentTime = 0;
+        openAudioRef.current.play().catch(() => {});
+      }
+    } else {
+      if (closeAudioRef.current) {
+        closeAudioRef.current.currentTime = 0;
+        closeAudioRef.current.play().catch(() => {});
+      }
+    }
+  }, [menuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {

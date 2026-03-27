@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import musicFile from '../assets/bg-music.mp3';
+import clickOpenSound from '../assets/click-open.wav';
+import clickCloseSound from '../assets/click-close.wav';
 
 export default function MusicToggle() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -53,16 +55,35 @@ export default function MusicToggle() {
     };
   }, []);
 
+  // UI Audio elements
+  const openAudioRef = useRef<HTMLAudioElement | null>(null);
+  const closeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    openAudioRef.current = new Audio(clickOpenSound);
+    closeAudioRef.current = new Audio(clickCloseSound);
+    openAudioRef.current.volume = 0.4;
+    closeAudioRef.current.volume = 0.4;
+  }, []);
+
   const toggleMusic = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
       audio.pause();
+      if (closeAudioRef.current) {
+        closeAudioRef.current.currentTime = 0;
+        closeAudioRef.current.play().catch(() => {});
+      }
     } else {
       audio.play().catch(() => {
         // Browser may block autoplay
       });
+      if (openAudioRef.current) {
+        openAudioRef.current.currentTime = 0;
+        openAudioRef.current.play().catch(() => {});
+      }
     }
     setIsPlaying(!isPlaying);
   };
