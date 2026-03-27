@@ -12,6 +12,19 @@ export default function MusicToggle() {
     audio.volume = 0.15;
     audioRef.current = audio;
 
+    // Attempt immediate autoplay on mount
+    const attemptImmediatePlay = () => {
+      if (!audioRef.current) return;
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+        hasInteracted.current = true;
+      }).catch(() => {
+        // Browser blocked immediate autoplay, wait for interaction
+      });
+    };
+
+    attemptImmediatePlay();
+
     const startAudio = () => {
       if (!hasInteracted.current && audioRef.current) {
         audioRef.current.play().then(() => {
