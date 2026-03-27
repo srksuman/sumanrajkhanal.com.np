@@ -95,7 +95,11 @@ body {
   color: var(--text);
   line-height: 1.6;
   overflow-x: hidden;
-  cursor: none;
+  cursor: url('/src/assets/cursor.png') 0 0, auto;
+}
+
+a, button, [role="button"], input, select, textarea {
+  cursor: url('/src/assets/cursor.png') 0 0, pointer;
 }
 
 a {

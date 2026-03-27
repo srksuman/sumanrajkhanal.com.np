@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import LoadingScreen from './components/LoadingScreen';
-import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
 import GrainOverlay from './components/GrainOverlay';
 import Navbar from './components/Navbar';
@@ -65,7 +64,6 @@ export default function App() {
 
       {!isLoading && (
         <>
-          <CustomCursor />
           <ScrollProgress />
           <GrainOverlay />
           <Navbar theme={theme} onToggleTheme={toggleTheme} />
