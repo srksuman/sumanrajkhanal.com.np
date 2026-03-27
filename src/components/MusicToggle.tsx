@@ -1,19 +1,40 @@
 import { useRef, useState, useEffect } from 'react';
+import musicFile from '../assets/bg-music.mp3';
 
 export default function MusicToggle() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const hasInteracted = useRef(false);
 
   useEffect(() => {
-    // Create audio element with ambient music
-    const audio = new Audio(
-      'https://cdn.pixabay.com/audio/2022/10/25/audio_32de29c459.mp3'
-    );
+    const audio = new Audio(musicFile);
     audio.loop = true;
     audio.volume = 0.15;
     audioRef.current = audio;
 
+    const startAudio = () => {
+      if (!hasInteracted.current && audioRef.current) {
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+          hasInteracted.current = true;
+          // Clean up listeners once audio plays
+          window.removeEventListener('click', startAudio);
+          window.removeEventListener('scroll', startAudio);
+          window.removeEventListener('keydown', startAudio);
+        }).catch(() => {
+          // Autoplay blocked
+        });
+      }
+    };
+
+    window.addEventListener('click', startAudio);
+    window.addEventListener('scroll', startAudio);
+    window.addEventListener('keydown', startAudio);
+
     return () => {
+      window.removeEventListener('click', startAudio);
+      window.removeEventListener('scroll', startAudio);
+      window.removeEventListener('keydown', startAudio);
       audio.pause();
       audio.src = '';
     };
