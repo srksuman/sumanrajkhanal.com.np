@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import * as THREE from 'three';
 
 function getThemeColors() {
@@ -205,8 +206,14 @@ export default function SkillsGlobe() {
   }, []);
 
   return (
-    <div className="skills-globe-wrapper">
+    <motion.div
+      className="skills-globe-wrapper"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: false, amount: 0.1 }}
+      transition={{ duration: 0.8 }}
+    >
       <canvas ref={canvasRef} className="skills-globe-canvas" aria-hidden="true" />
-    </div>
+    </motion.div>
   );
 }

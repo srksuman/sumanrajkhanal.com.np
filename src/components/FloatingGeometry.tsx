@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import * as THREE from 'three';
 
 type GeoType = 'octahedron' | 'tetrahedron' | 'dodecahedron' | 'icosahedron';
@@ -162,8 +163,14 @@ export default function FloatingGeometry({
   }, [type, size, color]);
 
   return (
-    <div className={`floating-geo-wrapper ${className || ''}`}>
+    <motion.div
+      className={`floating-geo-wrapper ${className || ''}`}
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: false, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
       <canvas ref={canvasRef} className="floating-geo-canvas" aria-hidden="true" />
-    </div>
+    </motion.div>
   );
 }
