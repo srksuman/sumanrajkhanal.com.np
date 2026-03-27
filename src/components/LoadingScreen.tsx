@@ -1,45 +1,221 @@
-import { useEffect, useState, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as THREE from 'three';
+
+/* ─── helpers ─── */
+const CODE_LINES = [
+  'const dev = new SoftwareEngineer();',
+  'await dev.initialize({ passion: true });',
+  'import { creativity } from "imagination";',
+  'while (alive) { code(); learn(); grow(); }',
+  'export default function Portfolio() {',
+  'git commit -m "building the future"',
+  'const skills = [...fullStack, ...devOps];',
+  'return <Experience excellence={true} />;',
+  'npm run deploy --production',
+  '// TODO: change the world ✨',
+];
+
+const BOOT_PHASES = [
+  { label: 'Compiling modules', icon: '⚙' },
+  { label: 'Linking dependencies', icon: '🔗' },
+  { label: 'Building assets', icon: '📦' },
+  { label: 'Initializing runtime', icon: '⚡' },
+  { label: 'Loading portfolio', icon: '🚀' },
+  { label: 'Ready', icon: '✓' },
+];
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isVisible, setIsVisible] = useState(true);
-  const progress = useMotionValue(0);
-  const displayProgress = useTransform(progress, (v) => Math.round(v));
-  const barScaleX = useTransform(progress, [0, 100], [0, 1]);
-  const [displayVal, setDisplayVal] = useState(0);
-
-  useEffect(() => {
-    const unsubscribe = displayProgress.on('change', (v) => setDisplayVal(v));
-    return unsubscribe;
-  }, [displayProgress]);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [bootPhase, setBootPhase] = useState(0);
+  const [completedPhases, setCompletedPhases] = useState<number[]>([]);
 
   const stableOnComplete = useCallback(onComplete, [onComplete]);
 
+  /* ─── rotating code lines ─── */
   useEffect(() => {
-    let start: number | null = null;
-    const duration = 2200;
+    const interval = setInterval(() => {
+      setCurrentLine((prev) => (prev + 1) % CODE_LINES.length);
+    }, 600);
+    return () => clearInterval(interval);
+  }, []);
 
-    const easeOutExpo = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+  /* ─── boot sequence phases ─── */
+  useEffect(() => {
+    const totalDuration = 5000; // 5 seconds total
+    const phaseCount = BOOT_PHASES.length;
+    const phaseInterval = totalDuration / phaseCount;
 
-    const animate = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const elapsed = timestamp - start;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = easeOutExpo(t);
-      progress.set(eased * 100);
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-      if (t < 1) {
-        requestAnimationFrame(animate);
-      } else {
+    for (let i = 0; i < phaseCount; i++) {
+      timers.push(
         setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(stableOnComplete, 600);
-        }, 400);
-      }
-    };
+          setBootPhase(i);
+          if (i > 0) {
+            setCompletedPhases((prev) => [...prev, i - 1]);
+          }
+        }, i * phaseInterval)
+      );
+    }
 
-    requestAnimationFrame(animate);
-  }, [stableOnComplete, progress]);
+    // mark last phase as done & exit
+    timers.push(
+      setTimeout(() => {
+        setCompletedPhases((prev) => [...prev, phaseCount - 1]);
+      }, totalDuration)
+    );
+
+    timers.push(
+      setTimeout(() => {
+        setIsVisible(false);
+        setTimeout(stableOnComplete, 700);
+      }, totalDuration + 600)
+    );
+
+    return () => timers.forEach(clearTimeout);
+  }, [stableOnComplete]);
+
+  /* ─── THREE.JS scene ─── */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 5);
+
+    /* ── icosahedron wireframe ── */
+    const icoGeo = new THREE.IcosahedronGeometry(1.6, 1);
+    const icoMat = new THREE.MeshBasicMaterial({
+      color: 0xc9a84c,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.25,
+    });
+    const ico = new THREE.Mesh(icoGeo, icoMat);
+    scene.add(ico);
+
+    /* ── inner glow sphere ── */
+    const glowGeo = new THREE.SphereGeometry(0.6, 32, 32);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0xc9a84c,
+      transparent: true,
+      opacity: 0.08,
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    scene.add(glow);
+
+    /* ── particle field ── */
+    const particleCount = 600;
+    const positions = new Float32Array(particleCount * 3);
+    const velocities: number[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 12;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+      velocities.push(
+        (Math.random() - 0.5) * 0.003,
+        (Math.random() - 0.5) * 0.003,
+        (Math.random() - 0.5) * 0.003,
+      );
+    }
+    const particleGeo = new THREE.BufferGeometry();
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particleMat = new THREE.PointsMaterial({
+      color: 0xc9a84c,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    /* ── orbiting rings ── */
+    const rings: THREE.Mesh[] = [];
+    for (let i = 0; i < 3; i++) {
+      const ringGeo = new THREE.TorusGeometry(2.2 + i * 0.4, 0.008, 8, 80);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xc9a84c,
+        transparent: true,
+        opacity: 0.12 - i * 0.03,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI * 0.3 * i;
+      ring.rotation.y = Math.PI * 0.2 * i;
+      rings.push(ring);
+      scene.add(ring);
+    }
+
+    /* ── animate ── */
+    const clock = new THREE.Clock();
+    let animId = 0;
+
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      ico.rotation.x = t * 0.15;
+      ico.rotation.y = t * 0.2;
+      ico.rotation.z = t * 0.1;
+      icoMat.opacity = 0.18 + Math.sin(t * 2) * 0.08;
+
+      const scale = 0.6 + Math.sin(t * 1.5) * 0.15;
+      glow.scale.set(scale, scale, scale);
+      glowMat.opacity = 0.06 + Math.sin(t * 2) * 0.04;
+
+      rings.forEach((ring, i) => {
+        ring.rotation.x += 0.002 * (i + 1);
+        ring.rotation.z += 0.001 * (i + 1);
+      });
+
+      const posArr = particleGeo.attributes.position.array as Float32Array;
+      for (let i = 0; i < particleCount; i++) {
+        posArr[i * 3] += velocities[i * 3];
+        posArr[i * 3 + 1] += velocities[i * 3 + 1];
+        posArr[i * 3 + 2] += velocities[i * 3 + 2];
+        for (let j = 0; j < 3; j++) {
+          if (posArr[i * 3 + j] > 6) posArr[i * 3 + j] = -6;
+          if (posArr[i * 3 + j] < -6) posArr[i * 3 + j] = 6;
+        }
+      }
+      particleGeo.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const onResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      icoGeo.dispose();
+      icoMat.dispose();
+      glowGeo.dispose();
+      glowMat.dispose();
+      particleGeo.dispose();
+      particleMat.dispose();
+      rings.forEach((r) => {
+        (r.geometry as THREE.BufferGeometry).dispose();
+        (r.material as THREE.Material).dispose();
+      });
+    };
+  }, []);
 
   return (
     <AnimatePresence>
@@ -47,31 +223,92 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
         <motion.div
           className="loading-screen"
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
+          transition={{ duration: 0.7, ease: 'easeInOut' }}
         >
-          <motion.div
-            className="loading-counter"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {displayVal}%
-          </motion.div>
+          <canvas ref={canvasRef} className="loading-canvas" />
 
-          <motion.div
-            className="loading-name"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
-            Suman Raj Khanal
-          </motion.div>
-
-          <div className="loading-bar">
+          <div className="loading-content">
+            {/* terminal code line */}
             <motion.div
-              className="loading-bar-fill"
-              style={{ scaleX: barScaleX }}
-            />
+              className="loading-terminal"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              <span className="loading-terminal-prompt">❯</span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentLine}
+                  className="loading-terminal-text"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {CODE_LINES[currentLine]}
+                </motion.span>
+              </AnimatePresence>
+              <span className="loading-terminal-cursor">▊</span>
+            </motion.div>
+
+            {/* name */}
+            <motion.div
+              className="loading-name"
+              initial={{ opacity: 0, letterSpacing: '20px' }}
+              animate={{ opacity: 1, letterSpacing: '8px' }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              Suman Raj Khanal
+            </motion.div>
+
+            {/* subtitle */}
+            <motion.div
+              className="loading-subtitle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              Software Engineer · Full-Stack Developer
+            </motion.div>
+
+            {/* boot sequence checklist */}
+            <motion.div
+              className="boot-sequence"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              {BOOT_PHASES.map((phase, i) => {
+                const isActive = i === bootPhase;
+                const isDone = completedPhases.includes(i);
+                const isVisible = i <= bootPhase;
+
+                return (
+                  <AnimatePresence key={i}>
+                    {isVisible && (
+                      <motion.div
+                        className={`boot-phase ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <span className="boot-phase-icon">
+                          {isDone ? '✓' : phase.icon}
+                        </span>
+                        <span className="boot-phase-label">{phase.label}</span>
+                        {isActive && !isDone && (
+                          <span className="boot-phase-dots">
+                            <span className="dot-1">.</span>
+                            <span className="dot-2">.</span>
+                            <span className="dot-3">.</span>
+                          </span>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                );
+              })}
+            </motion.div>
           </div>
         </motion.div>
       )}

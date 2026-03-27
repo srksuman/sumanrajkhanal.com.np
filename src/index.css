@@ -178,7 +178,7 @@ button {
 }
 
 /* ===================================
-   LOADING SCREEN
+   LOADING SCREEN (Three.js)
    =================================== */
 .loading-screen {
   position: fixed;
@@ -186,43 +186,160 @@ button {
   z-index: 9999;
   background: var(--bg);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  overflow: hidden;
 }
 
-.loading-counter {
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 10vw, 8rem);
-  font-weight: 300;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.loading-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
+.loading-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* terminal code line */
+.loading-terminal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+  color: var(--gold);
+  padding: 8px 20px;
+  background: rgba(201, 168, 76, 0.04);
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  border-radius: 4px;
+  margin-bottom: 24px;
+  min-height: 38px;
+  max-width: 500px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.loading-terminal-prompt {
+  color: var(--gold-light);
+  flex-shrink: 0;
+}
+
+.loading-terminal-text {
+  display: inline-block;
+  color: var(--text-muted);
+}
+
+.loading-terminal-cursor {
+  animation: blink 1s step-end infinite;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* name */
 .loading-name {
   font-family: var(--font-display);
-  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
   font-weight: 300;
   letter-spacing: 8px;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-.loading-bar {
-  width: 200px;
-  height: 1px;
-  background: rgba(201, 168, 76, 0.2);
-  position: relative;
-  overflow: hidden;
+/* subtitle */
+.loading-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
 }
 
-.loading-bar-fill {
-  height: 100%;
-  background: var(--gold-gradient);
-  transform-origin: left;
+/* boot sequence checklist */
+.boot-sequence {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 260px;
+  padding: 16px 24px;
+  background: rgba(201, 168, 76, 0.02);
+  border: 1px solid rgba(201, 168, 76, 0.08);
+  border-radius: 6px;
+}
+
+.boot-phase {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.boot-phase.active {
+  color: var(--gold-light);
+}
+
+.boot-phase.done {
+  color: var(--text-muted);
+}
+
+.boot-phase-icon {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+}
+
+.boot-phase.done .boot-phase-icon {
+  color: var(--gold);
+}
+
+.boot-phase-label {
+  flex: 1;
+}
+
+.boot-phase-dots {
+  display: inline-flex;
+  gap: 1px;
+  margin-left: 2px;
+}
+
+.boot-phase-dots .dot-1,
+.boot-phase-dots .dot-2,
+.boot-phase-dots .dot-3 {
+  animation: dotFade 1.2s ease-in-out infinite;
+  color: var(--gold);
+}
+
+.boot-phase-dots .dot-2 {
+  animation-delay: 0.2s;
+}
+
+.boot-phase-dots .dot-3 {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotFade {
+  0%, 20% { opacity: 0; }
+  40% { opacity: 1; }
+  60%, 100% { opacity: 0; }
 }
 
 /* ===================================
