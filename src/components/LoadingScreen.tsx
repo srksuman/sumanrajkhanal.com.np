@@ -268,7 +268,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
               animate={{ opacity: 0.6 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
-              Software Engineer · Full-Stack Developer
+              Software Engineer
             </motion.div>
 
             <motion.div
